@@ -2,6 +2,7 @@
 using LibraryAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace LibraryAPI.Controllers
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
+        private readonly ILogger<BookController> _logger;
 
-        public BookController(IBookService bookService)
+        public BookController(IBookService bookService, ILogger<BookController> logger)
         {
             this._bookService = bookService;
+            this._logger = logger;
         }
         
         [HttpPost("NewBook")]
@@ -25,7 +28,9 @@ namespace LibraryAPI.Controllers
         public async Task<ActionResult> AddBookAsync(AddBookDto book)
         {
             if (book == null) return BadRequest();
-            await _bookService.AddBookAsync(book);
+            var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _bookService.AddBookAsync(book,adminId);
+            _logger.LogInformation($"AddBookAsync EndPoint was accessed on {DateTime.Now}");
             return Created("Book Created Successfully", new { Title = book.Title, ISBN = book.ISBN, PublishYear = book.PublishYear });
         }
        
@@ -33,6 +38,7 @@ namespace LibraryAPI.Controllers
         public async Task<ActionResult> GetAllBookAsync()
         {
             var books = await _bookService.GetAllBooksAsync();
+            _logger.LogInformation($"GetBooks EndPoint was accessed on {DateTime.Now}");
             return Ok(books);
         }
        
@@ -42,6 +48,7 @@ namespace LibraryAPI.Controllers
             if (bookId == null) return BadRequest();
             var book = await _bookService.GetBookByIdAsync(bookId);
             if (book == null) return BadRequest("Book does not Exist");
+            _logger.LogInformation($"GetBook EndPoint was accessed on {DateTime.Now}");
             return Ok(book);
         }
      
@@ -68,6 +75,7 @@ namespace LibraryAPI.Controllers
                     bookRecord.Add(bookWithRecord);
                 }
             }
+            _logger.LogInformation($"ViewBooksWithRecords EndPoint was accessed on {DateTime.Now}");
             return Ok(bookRecord);
         }
 
@@ -75,10 +83,11 @@ namespace LibraryAPI.Controllers
         public async Task<ActionResult> SearchForBook([FromQuery] string searchParams)
         {
             var books = await _bookService.SearchAsync(searchParams);
+            _logger.LogInformation($"Search EndPoint was accessed on {DateTime.Now}");
             return Ok(books);
         }
 
-        [HttpGet("GetBooksWithUsers")]
+        [HttpGet("GetBooksWithUser")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetBooksWithStudent([FromQuery] string checkoutId, [FromQuery] string email)
         {
@@ -90,6 +99,7 @@ namespace LibraryAPI.Controllers
                 errors = error.ErrorMessage;
             }
             if (errors != null) return BadRequest(errors);
+            _logger.LogInformation($"GetBooksWithUser EndPoint was accessed on {DateTime.Now}");
             return Ok(UserBookToReturn);
         }
 
@@ -106,6 +116,7 @@ namespace LibraryAPI.Controllers
                 errors = error.ErrorMessage;
             }
             if (errors != null) return BadRequest(errors);
+            _logger.LogInformation($"ReturnBook EndPoint was accessed on {DateTime.Now}");
             return Ok(UserBookToReturn);
         }
     }

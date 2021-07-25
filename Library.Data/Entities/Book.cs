@@ -20,6 +20,8 @@ namespace Library.Data.Entities
         public decimal CoverPrice { get; set; }
         public bool IsAvailable { get; set; }
         public DateTime DateCreated { get; set; }
+        public string CreatedBy { get; set; }
+        public string CreatedById { get; set; }
         public DateTime DateModified { get; set; }
         public virtual List<BookCheckout> BookCheckout { get; set; }
         public string BookCheckoutId { get; set; }

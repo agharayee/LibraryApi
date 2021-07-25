@@ -9,7 +9,7 @@ namespace LibraryAPI.Services
 {
     public interface IBookService
     {
-        Task AddBookAsync(AddBookDto book);
+        Task AddBookAsync(AddBookDto book, string adminId);
         Task EditBookAsync(Book book);
         Task<List<BookToReturnDto>> GetAllBooksAsync();
         Task<BookToReturnDto> GetBookByIdAsync(string bookId);

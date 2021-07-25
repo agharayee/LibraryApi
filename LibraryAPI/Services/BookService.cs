@@ -25,14 +25,15 @@ namespace LibraryAPI.Services
             this._userManager = userManager;
         }
 
-        public async Task AddBookAsync(AddBookDto book)
+        public async Task AddBookAsync(AddBookDto book, string adminId)
         {
             if (book == null) throw new ArgumentNullException(nameof(book));
+            var admin = await _userManager.FindByIdAsync(adminId);
             var bookToBeCreated = _mapper.Map<Book>(book);
-            var helper = new WorkingDayHelper();
             bookToBeCreated.Id = Guid.NewGuid().ToString();
             bookToBeCreated.DateCreated = DateTime.Now;
-           // bookToBeCreated.DateModified = helper.FuturWorkingDays(DateTime.Now, 10);
+            bookToBeCreated.CreatedBy = $"{admin.FirstName} {admin.LastName}";
+            bookToBeCreated.CreatedById = admin.Id;
             await _context.Books.AddAsync(bookToBeCreated);
             await _context.SaveChangesAsync();
         }
