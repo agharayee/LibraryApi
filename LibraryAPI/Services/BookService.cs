@@ -45,15 +45,15 @@ namespace LibraryAPI.Services
 
         public async Task<List<BookToReturnDto>> GetAllBooksAsync()
         {
-           var books = await _context.Books.OrderBy(b => b.PublishYear).OrderBy(p => p.PublishYear).ToListAsync();
+            var books = await _context.Books.OrderBy(b => b.PublishYear).OrderBy(p => p.PublishYear).ToListAsync();
             var bookToReturn = _mapper.Map<List<BookToReturnDto>>(books);
-            foreach(var book in bookToReturn)
+            foreach (var book in bookToReturn)
             {
                 string IsAvailable = default;
                 if (book.IsAvailable == true) IsAvailable = "Available";
                 else IsAvailable = "Not Available at the Moment";
                 book.BookAvalability = IsAvailable;
-              
+
             }
             return bookToReturn;
         }
@@ -76,7 +76,7 @@ namespace LibraryAPI.Services
             if (string.IsNullOrEmpty(searchParam))
             {
                 var book = await GetAllBooksAsync();
-                foreach(var item in book)
+                foreach (var item in book)
                 {
                     string IsAvailable = default;
                     if (item.IsAvailable == true) IsAvailable = "Available";
@@ -95,8 +95,8 @@ namespace LibraryAPI.Services
                         Title = item.Title
                     };
                 }
-                
-                
+
+
             }
             var collection = _context.Books as IQueryable<Book>;
             collection = collection.AsQueryable().Where(b => b.IsAvailable == true || b.Title.Contains(searchParam) ||
@@ -104,7 +104,7 @@ namespace LibraryAPI.Services
             var books = await collection.ToListAsync();
 
             var bookToReturn = _mapper.Map<IEnumerable<BookToReturnDto>>(books);
-            foreach(var book in bookToReturn)
+            foreach (var book in bookToReturn)
             {
                 string IsAvailable = default;
                 if (book.IsAvailable == true) IsAvailable = "Available";
@@ -118,7 +118,7 @@ namespace LibraryAPI.Services
         {
             var book = await _context.Books.Include(b => b.BookCheckout).FirstOrDefaultAsync(book => book.Id == bookId);
             List<BookCheckout> bookCheckouts = new List<BookCheckout>();
-            foreach(var item in book.BookCheckout)
+            foreach (var item in book.BookCheckout)
             {
                 var user = await _userManager.FindByIdAsync(item.UserId);
                 item.User = user;
@@ -126,10 +126,10 @@ namespace LibraryAPI.Services
                 item.BookStatus = books;
             }
             string IsAvailable = default;
-      
+
             if (book.IsAvailable == true) IsAvailable = "Available";
             else IsAvailable = "Not Available at the Moment";
-            
+
             var bookToReturn = new BookToReturnWIthDetails
             {
                 Id = book.Id,
@@ -141,8 +141,8 @@ namespace LibraryAPI.Services
                 BookCheckout = book.BookCheckout,
                 ISBN = book.ISBN,
                 PublishYear = book.PublishYear,
-                Title = book.Title, 
-            
+                Title = book.Title,
+
             };
             return bookToReturn;
         }
@@ -152,7 +152,7 @@ namespace LibraryAPI.Services
             //if (bookIds == null) return null;
             List<Book> BookToCheckOut = new List<Book>();
             var user = await _userManager.FindByEmailAsync(userEmail);
-            if(user == null)
+            if (user == null)
             {
                 var errorMessage = new BookCheckoutDto
                 {
@@ -228,16 +228,16 @@ namespace LibraryAPI.Services
             }
             return userBook;
         }
-       
+
 
         public async Task<List<BookWithUser>> ReturnAllBookWithUserAsync(string checkoutId, string userId, string userEmail)
         {
-            List<BookWithUser> userBook = new List<BookWithUser>();
+            var userBook = new List<BookWithUser>();
             var helper = new WorkingDayHelper();
-            BookWithUser book = new BookWithUser();
+            var  book = new BookWithUser();
             DateTime lateCalculatedWorkingDay = default;
             var admin = await _userManager.FindByIdAsync(userId);
-            var booksWithUser =  await GetAllBookWithUser(checkoutId, userId, userEmail);
+            var booksWithUser = await GetAllBookWithUser(checkoutId, userId, userEmail);
             decimal payment = default;
             var init = DateTime.Now;
             var lateDay = init - booksWithUser.ProposedReturnDate;
@@ -249,7 +249,6 @@ namespace LibraryAPI.Services
             }
             else
             {
-
                 payment = 0.0M;
                 book.LateReturnPenalty = payment;
             }
@@ -279,7 +278,13 @@ namespace LibraryAPI.Services
             return userBook;
         }
 
-
+        /// <summary>
+        /// This Method Get all the books in User Custody
+        /// </summary>
+        /// <param name="checkoutId">The checkoutId he used to collect the books</param>
+        /// <param name="userId">AdminId</param>
+        /// <param name="userEmail">User Email Address</param>
+        /// <returns></returns>
         private async Task<BookCheckout> GetAllBookWithUser(string checkoutId, string userId, string userEmail)
         {
             BookWithUser book = new BookWithUser();
